@@ -3,146 +3,134 @@ import streamlit as st
 st.set_page_config(page_title="Hyundai Creta EV Advisor", page_icon="🚗", layout="centered")
 
 st.title("🚗 Hyundai Creta EV Advisor")
-st.markdown("**Exclusive for Hyundai Creta Electric (India)** — Variant selector + Charger advice + Features + Wall vs Portable")
+st.markdown("**Exclusive for Hyundai Creta Electric (India)** — Variant + Charger + Features + Wall vs Portable")
 
 # Session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "data" not in st.session_state:
-    st.session_state.data = {"variant": None}
+    st.session_state.data = {"variant": None, "phase": None}
 if "step" not in st.session_state:
     st.session_state.step = "variant"
 
-# Variant data
+# Variant data (updated with latest 2026 specs)
 variants = {
     "42 kWh": {
         "name": "42 kWh",
         "range": "390–420 km (ARAI)",
-        "power": "135 PS / 255 Nm",
+        "power": "133–135 PS / 255 Nm",
         "ac_charge_time": "≈ 4 hours (10–100% with 11 kW AC)",
-        "dc_charge": "≈ 58 min (10–80% with 50 kW DC)",
-        "max_ac_kw": 11.0
+        "dc_charge": "≈ 39–58 min (10–80% with 50 kW DC)"
     },
     "51.4 kWh Long Range": {
         "name": "51.4 kWh Long Range",
         "range": "473–510 km (ARAI)",
-        "power": "171 PS / 255 Nm",
+        "power": "169–171 PS / 255 Nm",
         "ac_charge_time": "≈ 4 hrs 50 min (10–100% with 11 kW AC)",
-        "dc_charge": "≈ 58 min (10–80% with 50 kW DC)",
-        "max_ac_kw": 11.0
+        "dc_charge": "≈ 39–58 min (10–80% with 50 kW DC)"
     }
 }
 
-# Display chat history
+# Display history
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# Welcome
+# Initial welcome
 if not st.session_state.messages:
     welcome = """👋 Hi! I'm your **Hyundai Creta EV** assistant.
 
-Please select your variant first:
+**First step:** Please select your variant.
 
-**42 kWh** — Good for daily use  
-**51.4 kWh Long Range** — Best range & performance
+Reply with:
+- **42 kWh**
+- **51.4 kWh** or **Long Range**
 
-Reply with **"42 kWh"** or **"51.4 kWh Long Range"**.
-
-I can help with:
-- Home charger installation
+After that I can help with:
+- Home wall charger installation requirements
 - Car features
-- **Wall Charger vs Portable Charger** benefits"""
+- Wall Charger vs Portable Charger benefits"""
     st.session_state.messages.append({"role": "assistant", "content": welcome})
 
 def show_features(variant=None):
-    base = """
-**Hyundai Creta Electric – Key Features (India 2026)**
+    base = """**Hyundai Creta Electric Features (India 2026)**
 
-**Common Features**
-- Dual 10.25-inch screens, panoramic sunroof (higher trims)
-- Ventilated seats, Bose audio, V2L, Bluelink connected car
+**Common Highlights**
+- Dual 10.25" screens, panoramic sunroof (higher trims)
+- Ventilated seats, Bose audio, V2L, Bluelink connected features
 - Level 2 ADAS, 360° camera, 6 airbags, CCS2 port
 
 """
     if variant and variant in variants:
         v = variants[variant]
         base += f"""
-**{v['name']} Details**
+**{v['name']}**
 - Range: {v['range']}
 - Power: {v['power']}
-- 11 kW AC Home Charging: {v['ac_charge_time']}
+- 11 kW AC Charging: {v['ac_charge_time']}
+- DC Fast: {v['dc_charge']}
 """
-    base += "\nType **'charger'**, **'features'**, **'wall vs portable'**, or **'variant'** anytime."
-    return base
+    return base + "\n\nType **features**, **charger**, **wall vs portable**, **variant**, or **reset** anytime."
 
 def show_wall_vs_portable():
-    comparison = """
-**Wall Charger vs Portable Charger – Benefits for Hyundai Creta EV**
+    return """**Wall Charger vs Portable Charger – For Creta EV**
 
-**Dedicated Wall Charger (Recommended for daily home use)**
-- **Faster & Consistent Charging**: Utilises full 11 kW (or 7.4 kW on single-phase) reliably. Full charge in \~4–5 hours vs much longer on portable.
-- **Convenience**: Always mounted near parking — just plug & go. No dragging cables every day.
-- **Safety**: Dedicated circuit, proper MCB/RCCB, better earthing protection. Reduces risk of overheating or tripping house circuits.
-- **Smart Features**: Many support app scheduling, load management, and future-proof for higher power.
-- **Long-term Savings**: Faster charging = better battery health management; looks professional and neat.
-- **Best for**: Fixed parking spot (apartments or independent houses in Bengaluru).
+**✅ Recommended: Dedicated Wall Charger**
+- Uses full 11 kW (or 7.4 kW safely)
+- Full charge in 4–5 hours vs 12–20+ hours on portable
+- Safer (dedicated MCB/RCCB + proper earthing)
+- Convenient (wall-mounted, no daily plugging hassle)
+- Better for battery health & daily use in Bengaluru
 
-**Portable Charger (Good as backup or for travel)**
-- **Flexibility**: Plug into any 15A/16A socket, easy to carry for trips or office.
-- **Lower Initial Cost**: Cheaper upfront, no installation needed.
-- **Limitations for Creta EV**: Often limited to 3.3 kW (very slow — 15+ hours for full charge), higher risk of overheating if used daily on standard sockets, less safe for high-power use.
+**Portable Charger (included with car)**
+- Useful for travel or emergency
+- Limited to \~3.3 kW → very slow for daily use
+- Higher risk if used on non-dedicated sockets
 
-**My Recommendation for Creta EV Owners**:
-- Go for a **dedicated 7.4 kW or 11 kW wall charger** if you park at home daily — it makes EV ownership truly convenient and fast.
-- Use the portable charger (that comes with the car or a basic one) as emergency/travel backup.
-- In Karnataka, a proper wall charger installation with load enhancement is straightforward and worth it for daily comfort & safety.
+**My Advice**: Install a proper **7.4 kW or 11 kW wall charger** at home for the best Creta EV experience.
 
-Would you like installation requirements for a wall charger? Just tell me your variant + home supply (single-phase / 3-phase)."""
-    return comparison
+Want installation requirements? Tell me your variant + supply type (single-phase / 3-phase)."""
 
-if prompt := st.chat_input("Type: 42 kWh / 51.4 kWh / features / charger / wall vs portable / reset..."):
+# Main chat logic
+if prompt := st.chat_input("Type here (e.g. 42 kWh, 51.4, features, charger, wall vs portable, reset)..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    user_input = prompt.lower().strip()
+    user = prompt.lower().strip()
 
-    # Variant selection
-    if "42" in user_input:
+    # === Variant Selection (improved detection) ===
+    if any(x in user for x in ["42", "kwh", "42kwh"]):
         st.session_state.data["variant"] = "42 kWh"
-        response = f"✅ Selected **42 kWh** variant.\n\n{show_features('42 kWh')}"
+        response = f"✅ **42 kWh** variant selected.\n\n{show_features('42 kWh')}\n\nNext: Is your home supply **single-phase** or **3-phase**?"
         st.session_state.step = "phase"
         st.session_state.messages.append({"role": "assistant", "content": response})
 
-    elif "51" in user_input or "long range" in user_input:
+    elif any(x in user for x in ["51", "51.4", "long range", "lr", "longrange"]):
         st.session_state.data["variant"] = "51.4 kWh Long Range"
-        response = f"✅ Selected **51.4 kWh Long Range** variant.\n\n{show_features('51.4 kWh Long Range')}"
+        response = f"✅ **51.4 kWh Long Range** variant selected.\n\n{show_features('51.4 kWh Long Range')}\n\nNext: Is your home supply **single-phase** or **3-phase**?"
         st.session_state.step = "phase"
         st.session_state.messages.append({"role": "assistant", "content": response})
 
-    # Features
-    elif any(word in user_input for word in ["feature", "spec", "learn", "about car"]):
+    # === Features ===
+    elif any(x in user for x in ["feature", "spec", "learn", "about car"]):
         variant = st.session_state.data.get("variant")
-        response = show_features(variant)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+        st.session_state.messages.append({"role": "assistant", "content": show_features(variant)})
 
-    # Wall vs Portable
-    elif any(word in user_input for word in ["wall", "portable", "vs", "benefit", "comparison"]):
-        response = show_wall_vs_portable()
-        st.session_state.messages.append({"role": "assistant", "content": response})
+    # === Wall vs Portable ===
+    elif any(x in user for x in ["wall", "portable", "vs", "benefit", "comparison"]):
+        st.session_state.messages.append({"role": "assistant", "content": show_wall_vs_portable()})
 
-    # Charger installation flow
-    elif st.session_state.step in ["phase", "welcome"] and st.session_state.data.get("variant"):
-        if "3" in user_input:
+    # === Charger flow ===
+    elif st.session_state.step == "phase" and st.session_state.data.get("variant"):
+        if "3" in user or "three" in user:
             st.session_state.data["phase"] = "3-phase"
-            response = "✅ **3-phase** — Best for full 11 kW speed on your Creta EV!"
+            response = "✅ **3-phase** noted — Perfect for full 11 kW charging!"
         else:
             st.session_state.data["phase"] = "single-phase"
             response = "✅ **Single-phase** noted."
-        
+        response += "\n\nFinal: Approximate distance (in metres) from your main electrical DB to the parking spot? (e.g. 5, 10, 15)"
         st.session_state.step = "distance"
-        response += "\n\nNext: Distance (metres) from main DB to parking spot?"
         st.session_state.messages.append({"role": "assistant", "content": response})
 
     elif st.session_state.step == "distance" and st.session_state.data.get("variant"):
@@ -152,61 +140,50 @@ if prompt := st.chat_input("Type: 42 kWh / 51.4 kWh / features / charger / wall 
         v = variants[variant_key]
         max_kw = 11.0 if phase == "3-phase" else 7.4
 
-        if phase == "3-phase":
-            charger_type = f"11 kW Wall Charger (recommended)"
-            mcb = "63A 4-pole MCB + 30mA RCCB"
-            cable = "16 mm² copper"
-        else:
-            charger_type = "7.4 kW Wall Charger"
-            mcb = "40A 2-pole MCB + 30mA RCCB"
-            cable = "10 mm² copper"
+        charger_type = "11 kW Wall Charger" if phase == "3-phase" else "7.4 kW Wall Charger"
+        mcb = "63A 4-pole MCB + 30mA RCCB" if phase == "3-phase" else "40A 2-pole MCB + 30mA RCCB"
+        cable = "16 mm² copper" if phase == "3-phase" else "10 mm² copper"
 
         report = f"""
-**✅ Wall Charger Requirements for your {variant_key} Creta EV**
+**✅ Wall Charger Requirements – {variant_key} Creta EV**
 
-**Recommended**: {charger_type}
+**Recommended Charger**: {charger_type}
 
 **Details**:
 - Supply: {phase.title()}
 - Max Speed: **{max_kw} kW**
 - Protection: {mcb}
 - Cable: {cable}
-- Dedicated circuit + good earthing mandatory
+- Dedicated circuit + proper earthing (<1 ohm) required
 
 **Charging Time**: {v['ac_charge_time']}
 
-Type **'wall vs portable'** to compare, **'features'**, or **'reset'**.
+Type **wall vs portable**, **features**, or **reset** to start over.
 """
         st.session_state.messages.append({"role": "assistant", "content": report})
         st.session_state.step = "done"
 
     else:
-        if "reset" in user_input:
+        if "reset" in user:
             for key in list(st.session_state.keys()):
                 if key != "messages":
                     del st.session_state[key]
             st.rerun()
         else:
-            response = "✅ Got it! Type **variant**, **features**, **charger**, **wall vs portable**, or **reset**."
-            st.session_state.messages.append({"role": "assistant", "content": response})
+            help_msg = "✅ Got it! Try typing:\n• **42 kWh** or **51.4 kWh**\n• **features**\n• **charger**\n• **wall vs portable**\n• **reset**"
+            st.session_state.messages.append({"role": "assistant", "content": help_msg})
 
-# Sidebar quick actions
+# Sidebar
 with st.sidebar:
     st.header("Creta EV Tools")
-    
     if st.button("🔄 Select Variant"):
         st.session_state.step = "variant"
-        msg = "Please select:\n• 42 kWh\n• 51.4 kWh Long Range"
-        st.session_state.messages.append({"role": "assistant", "content": msg})
         st.rerun()
-    
     if st.button("📋 Show Features"):
         variant = st.session_state.data.get("variant")
         st.session_state.messages.append({"role": "assistant", "content": show_features(variant)})
         st.rerun()
-    
-    if st.button("⚡ Wall vs Portable Charger"):
+    if st.button("⚡ Wall vs Portable"):
         st.session_state.messages.append({"role": "assistant", "content": show_wall_vs_portable()})
         st.rerun()
-    
-    st.caption("11 kW AC supported • Made for India (Bengaluru)")
+    st.caption("11 kW AC supported • Bengaluru friendly")
