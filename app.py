@@ -19,38 +19,81 @@ for msg in st.session_state.messages:
         st.markdown(msg["content"])
 
 if not st.session_state.messages:
-    st.session_state.messages.append({"role": "assistant", "content": "👋 Hi! Select your variant or click any topic in the sidebar."})
+    st.session_state.messages.append({"role": "assistant", "content": "👋 Hi! Select your variant from the sidebar or type 42 kWh / 51.4 kWh."})
 
-# Simple chat flow for charger advisor
+# Main chat logic
 if prompt := st.chat_input("Type: 42 kWh / 51.4 kWh / reset"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
+
     user = prompt.lower().strip()
+
+    # Variant selection
     if "42" in user:
         st.session_state.data["variant"] = "42 kWh"
         st.session_state.step = "phase"
-        st.session_state.messages.append({"role": "assistant", "content": "✅ **42 kWh** selected.\n\nNext: single-phase or 3-phase?"})
+        st.session_state.messages.append({"role": "assistant", "content": "✅ **42 kWh** selected.\n\nNext: Is your home supply **single-phase** or **3-phase**?"})
         st.rerun()
+
     elif "51" in user or "long" in user:
         st.session_state.data["variant"] = "51.4 kWh Long Range"
         st.session_state.step = "phase"
-        st.session_state.messages.append({"role": "assistant", "content": "✅ **51.4 kWh Long Range** selected.\n\nNext: single-phase or 3-phase?"})
+        st.session_state.messages.append({"role": "assistant", "content": "✅ **51.4 kWh Long Range** selected.\n\nNext: Is your home supply **single-phase** or **3-phase**?"})
         st.rerun()
-    elif st.session_state.step == "phase":
-        phase = "3-phase" if "3" in user else "single-phase"
-        st.session_state.data["phase"] = phase
-        st.session_state.messages.append({"role": "assistant", "content": f"✅ **{phase}** noted.\n\nFinal: Approximate distance (in metres) from main DB to parking spot?"})
+
+    # Phase step
+    elif st.session_state.step == "phase" and st.session_state.data.get("variant"):
+        if "3" in user or "three" in user:
+            st.session_state.data["phase"] = "3-phase"
+            msg = "✅ **3-phase** noted — Perfect for full 11 kW speed!"
+        else:
+            st.session_state.data["phase"] = "single-phase"
+            msg = "✅ **Single-phase** noted."
+        msg += "\n\nFinal: Approximate distance (in metres) from your main electrical DB to the parking spot? (e.g. 5, 10, 15)"
         st.session_state.step = "distance"
+        st.session_state.messages.append({"role": "assistant", "content": msg})
         st.rerun()
-    elif st.session_state.step == "distance":
-        st.session_state.messages.append({"role": "assistant", "content": "**✅ Wall Charger Requirements**\nOfficial Price: ₹75,215"})
+
+    # Distance step → Final report
+    elif st.session_state.step == "distance" and st.session_state.data.get("variant"):
+        st.session_state.data["distance"] = prompt
+        variant = st.session_state.data["variant"]
+        phase = st.session_state.data.get("phase", "single-phase")
+        max_kw = "11 kW" if phase == "3-phase" else "7.4 kW"
+        mcb = "63A 4-pole MCB + 30mA RCCB" if phase == "3-phase" else "40A 2-pole MCB + 30mA RCCB"
+        cable = "16 mm² copper" if phase == "3-phase" else "10 mm² copper"
+
+        report = f"""
+**✅ Wall Charger Requirements – {variant} Creta EV**
+
+**Official Price**: ₹75,215 (incl. installation, commissioning & GST)
+
+**Recommended Charger**: {max_kw} AC Wall Charger
+
+**Electrical Requirements**:
+- Supply: {phase.title()}
+- Max Speed: **{max_kw}**
+- Protection: {mcb}
+- Cable Size: {cable}
+- Dedicated circuit only
+- Proper earthing (< 1 ohm) mandatory
+
+**Charging Time**: 4 hours (42 kWh) / 4 hrs 50 min (51.4 kWh) on 11 kW wall charger
+
+Type **reset** to start over."""
+        st.session_state.messages.append({"role": "assistant", "content": report})
         st.session_state.step = "done"
+        st.rerun()
+
     elif "reset" in user:
         st.session_state.clear()
         st.rerun()
 
-# ==================== SIDEBAR ====================
+    else:
+        st.session_state.messages.append({"role": "assistant", "content": "Type **42 kWh** or **51.4 kWh** to begin, or use the sidebar buttons."})
+
+# Sidebar with all toggles
 with st.sidebar:
     st.header("Creta EV Tools")
     if st.button("🔄 Select Variant"):
@@ -60,7 +103,6 @@ with st.sidebar:
     st.divider()
     st.subheader("Official Hyundai Information")
 
-    # FAQ buttons
     if st.button("🚗 Driving Range"):
         st.session_state.messages.append({"role": "assistant", "content": "**Driving Range (Official)**\n• Creta 42 kWh → 390 km\n• Creta 51.4 kWh → 473 km"})
         st.rerun()
@@ -109,7 +151,7 @@ with st.sidebar:
         st.session_state.messages.append({"role": "assistant", "content": "**HV Battery Warranty (Official)**\n**8 Years / 1,60,000 km** (whichever earlier)"})
         st.rerun()
 
-    # Extended Warranty buttons
+    # Extended Warranty buttons (all three)
     if st.button("🛡️ Extended Warranty Price (0-90 days)"):
         st.session_state.messages.append({"role": "assistant", "content": "**🛡️ Extended Warranty Prices – 0-90 Days (Slab 1)**\n\n**Creta EV**\n• 4th Yr / 80K km : ₹24,099\n• 5th Yr / 100K km : ₹27,399\n• 4th & 5th Yr / 100K : ₹34,899\n• 4th & 5th Yr / 140K : ₹41,299\n• 4th–7th Yr / 140K : ₹89,699\n• 5th–7th Yr / 140K : ₹83,099\n• 6th & 7th Yr / 140K : ₹74,599"})
         st.rerun()
@@ -122,22 +164,8 @@ with st.sidebar:
         st.session_state.messages.append({"role": "assistant", "content": "**🛡️ Extended Warranty Prices – >365 Days (Slab 3)**\n\n**Creta EV**\n• 4th Yr / 80K km : ₹33,599\n• 5th Yr / 100K km : ₹35,599\n• 4th & 5th Yr / 100K : ₹48,499\n• 4th & 5th Yr / 140K : ₹57,499\n• 4th–7th Yr / 140K : ₹1,27,099\n• 5th–7th Yr / 140K : ₹1,09,299\n• 6th & 7th Yr / 140K : ₹1,03,899"})
         st.rerun()
 
-    # New iCare Package button (IONIQ 5 only)
     if st.button("🛡️ iCare Package (IONIQ 5 only)"):
-        st.session_state.messages.append({"role": "assistant", "content": """**🛡️ iCare Package (IONIQ 5 only)**
-
-Two "iCare" package options:
-1) **3 Yr / 30k Km** – Rs 67,619
-2) **5 Yr / 50k Km** – Rs 107,802
-
-Customers can purchase within **1 year** of New Car purchase.
-
-**Coverage**:
-- Periodic Maintenance (Brake Fluid, EV Coolant, Climate Control Air Filter)
-- 10 Running Repair items (Blade Wiper, Brake Disc/Pad, Bulbs & Fuses, etc.)
-- Wheel alignment & Wheel Balancing
-
-*Source: Official Hyundai iCare Package*"""})
+        st.session_state.messages.append({"role": "assistant", "content": "**🛡️ iCare Package (IONIQ 5 only)**\n\n1) 3 Yr / 30k Km – Rs 67,619\n2) 5 Yr / 50k Km – Rs 107,802\n\nCan be purchased within 1 year of new car purchase."})
         st.rerun()
 
     st.caption("Official Hyundai Data • Jan 2025")
