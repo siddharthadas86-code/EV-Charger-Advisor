@@ -21,7 +21,33 @@ for msg in st.session_state.messages:
 if not st.session_state.messages:
     st.session_state.messages.append({"role": "assistant", "content": "👋 Hi! Select your variant from the sidebar or type 42 kWh / 51.4 kWh."})
 
-# Main chat logic - FIXED
+# ==================== QUICK BUTTONS ON MAIN SCREEN (RIGHT SIDE) ====================
+st.subheader("Official Hyundai Information")
+col1, col2, col3, col4, col5 = st.columns(5)
+with col1:
+    if st.button("🚗 Driving Range", use_container_width=True):
+        st.session_state.messages.append({"role": "assistant", "content": "**Driving Range (Official)**\n• Creta 42 kWh → 390 km\n• Creta 51.4 kWh → 473 km"})
+        st.rerun()
+with col2:
+    if st.button("🔌 Charging System", use_container_width=True):
+        st.session_state.messages.append({"role": "assistant", "content": "**Charging System (Official)**\n11 kW AC Wall Box Charger → **₹75,215** (incl. installation & GST)"})
+        st.rerun()
+with col3:
+    if st.button("⏱️ Charging Time", use_container_width=True):
+        st.session_state.messages.append({"role": "assistant", "content": "**Official Charging Times**\nAC Wall Box (11 kW): 4 hrs (42 kWh) / 4 hrs 50 min (51.4 kWh)\nPortable: 17–24+ hrs\nDC 50 kW: 58–63 min"})
+        st.rerun()
+with col4:
+    if st.button("⚡ V2L Features", use_container_width=True):
+        st.session_state.messages.append({"role": "assistant", "content": "**V2L Features (Official)**\nUp to **3.6 kW** – powers laptops, appliances, etc."})
+        st.rerun()
+with col5:
+    if st.button("🛡️ Extended Warranty", use_container_width=True):
+        st.session_state.messages.append({"role": "assistant", "content": "See full Extended Warranty options in the left sidebar (0-90 days, 91-365 days, >365 days)."})
+        st.rerun()
+
+st.divider()
+
+# Main chat logic (fixed distance input)
 if prompt := st.chat_input("Type: 42 kWh / 51.4 kWh / reset"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -85,7 +111,7 @@ Type **reset** to start over."""
         st.session_state.clear()
         st.rerun()
 
-# ==================== SIDEBAR ====================
+# ==================== LEFT SIDEBAR (Full toggles) ====================
 with st.sidebar:
     st.header("EV Tools")
     if st.button("🔄 Select Variant"):
