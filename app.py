@@ -1,8 +1,8 @@
 import streamlit as st
 
-st.set_page_config(page_title="Hyundai Creta EV Advisor", page_icon="🚗", layout="centered")
+st.set_page_config(page_title="EV Advisor", page_icon="🚗", layout="centered")
 
-st.title("🚗 Hyundai Creta EV Advisor")
+st.title("🚗 EV Advisor")
 st.markdown("**Exclusive for Hyundai Creta Electric (India)** — Official Hyundai FAQ + Charger Advisor")
 
 # Session state
@@ -21,7 +21,7 @@ for msg in st.session_state.messages:
 if not st.session_state.messages:
     st.session_state.messages.append({"role": "assistant", "content": "👋 Hi! Select your variant from the sidebar or type 42 kWh / 51.4 kWh."})
 
-# Main chat logic
+# Main chat logic (fixed - now works with single input for distance)
 if prompt := st.chat_input("Type: 42 kWh / 51.4 kWh / reset"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -29,7 +29,6 @@ if prompt := st.chat_input("Type: 42 kWh / 51.4 kWh / reset"):
 
     user = prompt.lower().strip()
 
-    # Variant selection
     if "42" in user:
         st.session_state.data["variant"] = "42 kWh"
         st.session_state.step = "phase"
@@ -42,7 +41,6 @@ if prompt := st.chat_input("Type: 42 kWh / 51.4 kWh / reset"):
         st.session_state.messages.append({"role": "assistant", "content": "✅ **51.4 kWh Long Range** selected.\n\nNext: Is your home supply **single-phase** or **3-phase**?"})
         st.rerun()
 
-    # Phase step
     elif st.session_state.step == "phase" and st.session_state.data.get("variant"):
         if "3" in user or "three" in user:
             st.session_state.data["phase"] = "3-phase"
@@ -55,7 +53,6 @@ if prompt := st.chat_input("Type: 42 kWh / 51.4 kWh / reset"):
         st.session_state.messages.append({"role": "assistant", "content": msg})
         st.rerun()
 
-    # Distance step → Final report
     elif st.session_state.step == "distance" and st.session_state.data.get("variant"):
         st.session_state.data["distance"] = prompt
         variant = st.session_state.data["variant"]
@@ -65,7 +62,7 @@ if prompt := st.chat_input("Type: 42 kWh / 51.4 kWh / reset"):
         cable = "16 mm² copper" if phase == "3-phase" else "10 mm² copper"
 
         report = f"""
-**✅ Wall Charger Requirements – {variant} Creta EV**
+**✅ Wall Charger Requirements – {variant}**
 
 **Official Price**: ₹75,215 (incl. installation, commissioning & GST)
 
@@ -90,12 +87,9 @@ Type **reset** to start over."""
         st.session_state.clear()
         st.rerun()
 
-    else:
-        st.session_state.messages.append({"role": "assistant", "content": "Type **42 kWh** or **51.4 kWh** to begin, or use the sidebar buttons."})
-
 # Sidebar with all toggles
 with st.sidebar:
-    st.header("Creta EV Tools")
+    st.header("EV Tools")
     if st.button("🔄 Select Variant"):
         st.session_state.step = "variant"
         st.rerun()
@@ -151,7 +145,6 @@ with st.sidebar:
         st.session_state.messages.append({"role": "assistant", "content": "**HV Battery Warranty (Official)**\n**8 Years / 1,60,000 km** (whichever earlier)"})
         st.rerun()
 
-    # Extended Warranty buttons (all three)
     if st.button("🛡️ Extended Warranty Price (0-90 days)"):
         st.session_state.messages.append({"role": "assistant", "content": "**🛡️ Extended Warranty Prices – 0-90 Days (Slab 1)**\n\n**Creta EV**\n• 4th Yr / 80K km : ₹24,099\n• 5th Yr / 100K km : ₹27,399\n• 4th & 5th Yr / 100K : ₹34,899\n• 4th & 5th Yr / 140K : ₹41,299\n• 4th–7th Yr / 140K : ₹89,699\n• 5th–7th Yr / 140K : ₹83,099\n• 6th & 7th Yr / 140K : ₹74,599"})
         st.rerun()
