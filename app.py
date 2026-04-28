@@ -19,9 +19,9 @@ for msg in st.session_state.messages:
         st.markdown(msg["content"])
 
 if not st.session_state.messages:
-    st.session_state.messages.append({"role": "assistant", "content": "👋 Hi! Select your variant or click any topic below — official details will appear here."})
+    st.session_state.messages.append({"role": "assistant", "content": "👋 Hi! Select your variant or click any topic in the sidebar."})
 
-# Simple chat flow
+# Simple chat flow for charger advisor
 if prompt := st.chat_input("Type: 42 kWh / 51.4 kWh / reset"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -37,4 +37,5 @@ if prompt := st.chat_input("Type: 42 kWh / 51.4 kWh / reset"):
         st.session_state.step = "phase"
         st.session_state.messages.append({"role": "assistant", "content": "✅ **51.4 kWh Long Range** selected.\n\nNext: single-phase or 3-phase?"})
         st.rerun()
-    elif st.session_state.step
+    elif st.session_state.step == "phase":
+        phase = "3-phase" if "3" in user else "single-phase"
